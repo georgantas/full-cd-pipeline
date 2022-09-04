@@ -1,22 +1,42 @@
 import * as cdk from 'aws-cdk-lib';
+import { LinuxArmBuildImage, Project } from 'aws-cdk-lib/aws-codebuild';
 import { Repository } from 'aws-cdk-lib/aws-codecommit';
-import { CodePipeline, CodePipelineSource, ShellStep } from 'aws-cdk-lib/pipelines';
+import { Action, Artifact, Pipeline } from 'aws-cdk-lib/aws-codepipeline';
+import { CodeBuildAction, CodeCommitSourceAction } from 'aws-cdk-lib/aws-codepipeline-actions';
+import { CodeBuildProject } from 'aws-cdk-lib/aws-events-targets';
+import { CodePipeline, CodePipelineSource, ManualApprovalStep, ShellStep } from 'aws-cdk-lib/pipelines';
 import { Construct } from 'constructs';
+import { MyPipelineAppStage } from './my-pipeline-app-stage';
 
 export class FullCdPipelineStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    const repo = new Repository(this, 'Repository', {
+    const pipelineRepo = new Repository(this, 'Repository', {
       repositoryName: "full-cd-pipeline"
     });
 
-    const pipeline = new CodePipeline(this, 'Pipeline', {
+    const lambdaRustRepo = Repository.fromRepositoryName(this, 'LambdaRustRepository', 'rust_lambda');
+
+    const codePipeline = new CodePipeline(this, 'Pipeline', {
       pipelineName: 'MyPipeline',
+      dockerEnabledForSelfMutation: true,
       synth: new ShellStep('Synth', {
-        input: CodePipelineSource.codeCommit(repo, 'main'),
-        commands: ['npm ci', 'npm run build', 'npx cdk synth']
+        input: CodePipelineSource.codeCommit(pipelineRepo, 'main'),
+        commands: ['npm ci', 'npm run build', 'npx cdk synth'],
+        additionalInputs: {
+          '../rust_lambda': CodePipelineSource.codeCommit(lambdaRustRepo, 'master'),
+        },
       })
     });
+
+    const alpha = codePipeline.addStage(new MyPipelineAppStage(this, "AlphaStage", {
+      env: {
+        account: '879320377447',
+        region: 'us-east-1',
+      },
+    }));
+
+    alpha.addPost(new ManualApprovalStep('Approval'));
   }
 }
