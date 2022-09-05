@@ -1,5 +1,5 @@
 import * as cdk from 'aws-cdk-lib';
-import { LinuxArmBuildImage, LinuxBuildImage, Project } from 'aws-cdk-lib/aws-codebuild';
+import { LinuxArmBuildImage, Project } from 'aws-cdk-lib/aws-codebuild';
 import { Repository } from 'aws-cdk-lib/aws-codecommit';
 import { Action, Artifact, Pipeline } from 'aws-cdk-lib/aws-codepipeline';
 import { CodeBuildAction, CodeCommitSourceAction } from 'aws-cdk-lib/aws-codepipeline-actions';
@@ -21,11 +21,6 @@ export class FullCdPipelineStack extends cdk.Stack {
     const codePipeline = new CodePipeline(this, 'Pipeline', {
       pipelineName: 'MyPipeline',
       dockerEnabledForSelfMutation: true,
-      codeBuildDefaults:{
-        buildEnvironment: {
-          buildImage: LinuxArmBuildImage.AMAZON_LINUX_2_STANDARD_2_0
-        }
-      },
       synth: new ShellStep('Synth', {
         input: CodePipelineSource.codeCommit(pipelineRepo, 'main'),
         commands: ['npm ci', 'npm run build', 'npx cdk synth'],
