@@ -16,7 +16,7 @@ export class MyLambdaStack extends cdk.Stack {
 
     new DockerImageFunction(this, 'DockerImageFunction', {
       memorySize: 128,
-      architecture: Architecture.ARM_64,
+      architecture: Architecture.X86_64,
       code: DockerImageCode.fromImageAsset('../rust_lambda', {
         
       }),
