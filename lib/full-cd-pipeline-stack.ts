@@ -12,20 +12,14 @@ export class FullCdPipelineStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    const pipelineRepo = new Repository(this, 'Repository', {
-      repositoryName: "full-cd-pipeline"
-    });
-
-    const lambdaRustRepo = Repository.fromRepositoryName(this, 'LambdaRustRepository', 'rust_lambda');
-
     const codePipeline = new CodePipeline(this, 'Pipeline', {
       pipelineName: 'MyPipeline',
       dockerEnabledForSelfMutation: true,
       synth: new ShellStep('Synth', {
-        input: CodePipelineSource.codeCommit(pipelineRepo, 'main'),
+        input: CodePipelineSource.gitHub('georgantas/full-cd-pipeline', 'main'),
         commands: ['npm ci', 'npm run build', 'npx cdk synth'],
         additionalInputs: {
-          '../rust_lambda': CodePipelineSource.codeCommit(lambdaRustRepo, 'master'),
+          '../rust_lambda': CodePipelineSource.gitHub('georgantas/rust-lambda', 'main'),
         },
       })
     });
