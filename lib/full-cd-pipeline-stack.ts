@@ -14,7 +14,7 @@ export class FullCdPipelineStack extends cdk.Stack {
 
     const codePipeline = new CodePipeline(this, 'Pipeline', {
       pipelineName: 'MyPipeline',
-      dockerEnabledForSelfMutation: true,
+      dockerEnabledForSelfMutation: true, // https://docs.aws.amazon.com/cdk/api/v1/docs/pipelines-readme.html#using-docker-image-assets-in-the-pipeline
       synth: new ShellStep('Synth', {
         input: CodePipelineSource.gitHub('georgantas/full-cd-pipeline', 'main'),
         commands: ['npm ci', 'npm run build', 'npx cdk synth'],
