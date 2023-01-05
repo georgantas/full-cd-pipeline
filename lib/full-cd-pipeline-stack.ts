@@ -16,10 +16,14 @@ export class FullCdPipelineStack extends cdk.Stack {
       pipelineName: 'MyPipeline',
       dockerEnabledForSelfMutation: true, // https://docs.aws.amazon.com/cdk/api/v1/docs/pipelines-readme.html#using-docker-image-assets-in-the-pipeline
       synth: new ShellStep('Synth', {
-        input: CodePipelineSource.gitHub('georgantas/full-cd-pipeline', 'main'),
+        input: CodePipelineSource.connection('georgantas/full-cd-pipeline', 'main', {
+          connectionArn: 'arn:aws:codestar-connections:us-east-1:879320377447:connection/470d19a4-0ae5-485d-925e-e4b4fd0d71f9'
+        }),
         commands: ['npm ci', 'npm run build', 'npx cdk synth'],
         additionalInputs: {
-          '../rust_lambda': CodePipelineSource.gitHub('georgantas/rust-lambda', 'main'),
+          '../rust_lambda': CodePipelineSource.connection('georgantas/rust-lambda', 'main', {
+            connectionArn: 'arn:aws:codestar-connections:us-east-1:879320377447:connection/470d19a4-0ae5-485d-925e-e4b4fd0d71f9'
+          }),
         },
       })
     });
